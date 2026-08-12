@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Jurnal Pemasukan & Pengeluaran</title>
+<meta name="description" content="Catat pemasukan dan pengeluaran harian, dengan rekap mingguan & bulanan otomatis. Dilindungi login dan PIN, 100% offline di perangkat kamu.">
+
+<!-- PWA -->
+<meta name="theme-color" content="#0b0904" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f4ec" media="(prefers-color-scheme: light)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jurnal Keuangan">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="loading" class="loading-screen">
+  <div style="font-family:'Fraunces',serif; font-size:20px; color:#c9a84c;">Memuat jurnal…</div>
+</div>
+
+<div id="root" style="display:none;">
+
+<!-- ══════════════════════════════════════
+     LOGIN / DAFTAR
+══════════════════════════════════════ -->
+<div id="page-login">
+  <div class="login-inner">
+    <div class="login-logo-wrap">
+      <img class="login-logo" src="icons/icon-192.png" alt="Jurnal Keuangan" />
+      <div class="login-title">Jurnal Pemasukan & Pengeluaran</div>
+      <div class="login-subtitle">Catat &amp; Pantau Keuangan Kamu</div>
+    </div>
+
+    <div class="login-card">
+      <div class="login-tab-row">
+        <button class="login-tab active" id="tab-login" type="button">Masuk</button>
+        <button class="login-tab" id="tab-register" type="button">Daftar</button>
+      </div>
+
+      <!-- Login -->
+      <div class="login-form-section active" id="form-login">
+        <div class="login-error" id="login-error"></div>
+        <div class="login-success" id="login-success"></div>
+        <div class="login-field">
+          <label>Email</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">✉️</span>
+            <input class="login-input" type="email" id="login-email" placeholder="Masukkan email kamu" inputmode="email" autocomplete="email">
+          </div>
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">🔒</span>
+            <input class="login-input" type="password" id="login-password" placeholder="Masukkan password" autocomplete="current-password" style="padding-right:44px;">
+            <button type="button" class="eye-btn" id="eye-login-pw"></button>
+          </div>
+          <a class="login-forgot" id="login-forgot">Lupa password?</a>
+        </div>
+        <button class="login-btn" type="button" id="btnDoLogin">MASUK</button>
+        <div class="login-alt-row">Belum punya akun? <a data-switch-tab="register">Daftar sekarang</a></div>
+      </div>
+
+      <!-- Register -->
+      <div class="login-form-section" id="form-register">
+        <div class="login-error" id="reg-error"></div>
+        <div class="login-success" id="reg-success"></div>
+        <div class="login-field">
+          <label>Nama Lengkap</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">👤</span>
+            <input class="login-input" type="text" id="reg-name" placeholder="Nama kamu" autocomplete="name">
+          </div>
+        </div>
+        <div class="login-field">
+          <label>Email</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">✉️</span>
+            <input class="login-input" type="email" id="reg-email" placeholder="Email kamu" inputmode="email" autocomplete="email">
+          </div>
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">🔒</span>
+            <input class="login-input" type="password" id="reg-password" placeholder="Min. 8 karakter & angka" autocomplete="new-password" style="padding-right:44px;">
+            <button type="button" class="eye-btn" id="eye-reg-pw"></button>
+          </div>
+        </div>
+        <div class="login-field">
+          <label>Konfirmasi Password</label>
+          <div class="login-input-wrap">
+            <span class="login-input-icon">🔒</span>
+            <input class="login-input" type="password" id="reg-confirm" placeholder="Ulangi password" autocomplete="new-password" style="padding-right:44px;">
+            <button type="button" class="eye-btn" id="eye-reg-cnf"></button>
+          </div>
+        </div>
+        <button class="login-btn" type="button" id="btnDoRegister">DAFTAR</button>
+        <div class="login-alt-row">Sudah punya akun? <a data-switch-tab="login">Masuk di sini</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PIN
+══════════════════════════════════════ -->
+<div id="page-pin" style="display:none;">
+  <div class="pin-inner">
+    <div class="pin-avatar" id="pin-avatar">👤</div>
+    <div class="pin-user-name" id="pin-user-name">—</div>
+    <div class="pin-user-email" id="pin-user-email">—</div>
+    <div class="pin-title">Masukkan PIN kamu</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div><div class="pin-dot" id="pd4"></div><div class="pin-dot" id="pd5"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" data-pin="1" type="button">1</button>
+      <button class="pin-key" data-pin="2" type="button">2</button>
+      <button class="pin-key" data-pin="3" type="button">3</button>
+      <button class="pin-key" data-pin="4" type="button">4</button>
+      <button class="pin-key" data-pin="5" type="button">5</button>
+      <button class="pin-key" data-pin="6" type="button">6</button>
+      <button class="pin-key" data-pin="7" type="button">7</button>
+      <button class="pin-key" data-pin="8" type="button">8</button>
+      <button class="pin-key" data-pin="9" type="button">9</button>
+      <button class="pin-key empty" type="button"></button>
+      <button class="pin-key" data-pin="0" type="button">0</button>
+      <button class="pin-key del" id="pin-del-btn" type="button">⌫</button>
+    </div>
+    <div class="pin-error-msg" id="pin-error-msg"></div>
+    <div class="pin-switch-user" id="pin-switch-user">↩ Ganti Akun</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div class="app-wrap" id="app-wrap">
+
+  <header class="app-header">
+    <div class="brand">
+      <img class="brand-icon" src="icons/icon-192.png" alt="Jurnal Keuangan" />
+      <div>
+        <div class="brand-name">Jurnal Keuangan</div>
+        <div class="brand-sub">Pemasukan &amp; Pengeluaran</div>
+      </div>
+    </div>
+    <button class="header-avatar" id="header-avatar" aria-label="Pengaturan" type="button">👤</button>
+  </header>
+
+  <div id="install-banner">
+    <p><strong>Pasang Jurnal Keuangan</strong><br>Akses lebih cepat &amp; bisa dipakai offline.</p>
+    <button class="install-btn" id="install-btn" type="button">Pasang</button>
+    <button class="install-close" id="install-close" type="button">×</button>
+  </div>
+
+  <!-- ── BERANDA (Ringkasan) ── -->
+  <div class="page active" id="page-beranda">
+    <div class="page-title">Jurnal Keuangan</div>
+    <div class="page-subtitle">Ringkasan, catatan harian, dan rekap otomatis.</div>
+
+    <div class="cards">
+      <div class="card balance">
+        <div class="label">Saldo Saat Ini</div>
+        <div class="value" id="cardSaldo">Rp 0</div>
+      </div>
+      <div class="card income">
+        <div class="label">Total Pemasukan</div>
+        <div class="value" id="cardMasuk">Rp 0</div>
+      </div>
+      <div class="card expense">
+        <div class="label">Total Pengeluaran</div>
+        <div class="value" id="cardKeluar">Rp 0</div>
+      </div>
+    </div>
+
+    <div class="trend">
+      <div class="label">Tren Saldo</div>
+      <svg id="trendSvg" viewBox="0 0 400 52" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+      <button class="btn" id="btnExport" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Unduh Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- ── JURNAL (catatan & rekap) ── -->
+  <div class="page" id="page-jurnal">
+    <div class="page-title">Jurnal Keuangan</div>
+    <div class="page-subtitle">Catatan harian dan rekap otomatis.</div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="harian" type="button">Jurnal Harian</button>
+      <button class="tab" data-tab="mingguan" type="button">Ringkasan Mingguan</button>
+      <button class="tab" data-tab="bulanan" type="button">Ringkasan Bulanan</button>
+    </div>
+
+    <!-- JURNAL HARIAN -->
+    <section class="tab-panel active" id="panel-harian">
+      <div class="saldo-row">
+        <label for="saldoAwal">Saldo awal (Rp)</label>
+        <input type="number" id="saldoAwal" value="0" inputmode="numeric">
+      </div>
+
+      <div class="entry-form">
+        <div class="grid">
+          <div class="field field-tanggal">
+            <label>Tanggal</label>
+            <input type="date" id="fTanggal">
+          </div>
+          <div class="field field-keterangan">
+            <label>Keterangan</label>
+            <input type="text" id="fKeterangan" placeholder="mis. beli beras">
+          </div>
+          <div class="field field-kategori">
+            <label class="field-label-row">Kategori <button type="button" class="manage-cat-btn" id="btnManageCategories" title="Kelola kategori (hapus/tambah)">⚙ Kelola</button></label>
+            <select id="fKategori"></select>
+          </div>
+          <div class="field field-pemasukan">
+            <label>Pemasukan (Rp)</label>
+            <input type="number" id="fPemasukan" value="0" min="0" inputmode="numeric">
+          </div>
+          <div class="field field-pengeluaran">
+            <label>Pengeluaran (Rp)</label>
+            <input type="number" id="fPengeluaran" value="0" min="0" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" id="btnCancelEdit" type="button" style="display:none;">Batal</button>
+          <button class="btn btn-gold" id="btnSaveEntry" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+            Tambah Transaksi
+          </button>
+        </div>
+        <div class="editing-note" id="editingNote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Sedang mengubah transaksi
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>No</th><th>Tanggal</th><th>Keterangan</th><th>Kategori</th>
+              <th class="num">Pemasukan</th><th class="num">Pengeluaran</th><th class="num">Saldo</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyHarian"></tbody>
+        </table>
+      </div>
+      <div id="emptyHarian" class="empty-state" style="display:none;">
+        <div class="mark">✕˙</div>
+        Belum ada transaksi. Tambahkan yang pertama lewat form di atas.
+      </div>
+    </section>
+
+    <!-- RINGKASAN MINGGUAN -->
+    <section class="tab-panel" id="panel-mingguan">
+      <h2 class="section-title">Ringkasan Mingguan</h2>
+      <p class="section-sub">Rekap otomatis per minggu (Senin–Minggu) dari Jurnal Harian.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Minggu ke</th><th>Awal (Senin)</th><th>Akhir (Minggu)</th>
+              <th class="num">Pemasukan</th><th class="num">Pengeluaran</th><th class="num">Selisih</th><th class="num">Saldo Akhir</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyMingguan"></tbody>
+        </table>
+      </div>
+      <div id="emptyMingguan" class="empty-state" style="display:none;">
+        <div class="mark">✕˙</div>
+        Belum ada data untuk direkap.
+      </div>
+    </section>
+
+    <!-- RINGKASAN BULANAN -->
+    <section class="tab-panel" id="panel-bulanan">
+      <h2 class="section-title">Ringkasan Bulanan</h2>
+      <p class="section-sub">Rekap otomatis per bulan dari Jurnal Harian.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Bulan ke</th><th>Bulan</th>
+              <th class="num">Pemasukan</th><th class="num">Pengeluaran</th><th class="num">Selisih</th><th class="num">Saldo Akhir</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyBulanan"></tbody>
+        </table>
+      </div>
+      <div id="emptyBulanan" class="empty-state" style="display:none;">
+        <div class="mark">✕˙</div>
+        Belum ada data untuk direkap.
+      </div>
+    </section>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div class="page" id="page-settings">
+    <div class="page-title">Pengaturan</div>
+    <div class="page-subtitle">Kelola akun &amp; preferensi aplikasi</div>
+
+    <div class="profile-card">
+      <div class="profile-avatar" id="sett-avatar">👤</div>
+      <div class="profile-info">
+        <div class="profile-name" id="sett-name">—</div>
+        <div class="profile-email" id="sett-email">—</div>
+        <div class="profile-badge">📓 Pengguna Jurnal</div>
+      </div>
+      <button class="profile-edit-btn" id="profile-edit-btn" type="button">Edit</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Keamanan</div>
+      <div class="settings-group">
+        <div class="settings-row" id="row-pin">
+          <div class="settings-row-icon">🔐</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">PIN Masuk</div>
+            <div class="settings-row-desc" id="pin-status-desc">Belum diatur</div>
+          </div>
+          <div class="settings-row-right">›</div>
+        </div>
+        <div class="settings-row" id="row-pin-onopen">
+          <div class="settings-row-icon">🛡️</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Minta PIN saat buka app</div>
+            <div class="settings-row-desc">Keamanan tambahan setiap membuka aplikasi</div>
+          </div>
+          <div class="settings-row-right"><div class="toggle-switch" id="toggle-pin-onopen"></div></div>
+        </div>
+        <div class="settings-row" id="row-password">
+          <div class="settings-row-icon">🔑</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Ubah Password</div>
+            <div class="settings-row-desc">Ganti password akun kamu</div>
+          </div>
+          <div class="settings-row-right">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Aplikasi</div>
+      <div class="settings-group">
+        <div class="settings-row" id="row-haptic">
+          <div class="settings-row-icon">📳</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Haptic Feedback</div>
+            <div class="settings-row-desc">Getaran saat input PIN &amp; tombol</div>
+          </div>
+          <div class="settings-row-right"><div class="toggle-switch" id="toggle-haptic"></div></div>
+        </div>
+        <div class="settings-row" style="cursor:default;">
+          <div class="settings-row-icon">🌗</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Mode Tampilan</div>
+            <div class="settings-row-desc">Terang / Gelap</div>
+          </div>
+          <div class="settings-row-right"><div class="toggle-switch" id="toggle-theme"></div></div>
+        </div>
+        <div class="settings-row currency-row" style="cursor:default;">
+          <div class="settings-row-icon">🔄</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Mata Uang Tampilan</div>
+            <div class="settings-row-desc">Ubah simbol &amp; nilai P&amp;L di seluruh app</div>
+          </div>
+        </div>
+        <div class="currency-options">
+          <button class="currency-btn" id="btnCurrencyUSD" type="button" data-currency="USD">$ USD</button>
+          <button class="currency-btn active" id="btnCurrencyIDR" type="button" data-currency="IDR">Rp IDR</button>
+        </div>
+        <div class="settings-row" id="row-exchange-rate" style="display:none;">
+          <div class="settings-row-icon">💱</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Kurs USD → IDR</div>
+            <div class="settings-row-desc" id="exchange-rate-desc">1 USD = Rp 17.800</div>
+          </div>
+          <div class="settings-row-right">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Kelola Data</div>
+      <div class="settings-group">
+        <div class="settings-row" id="row-export">
+          <div class="settings-row-icon">⬇️</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Ekspor Data (JSON)</div>
+            <div class="settings-row-desc">Simpan cadangan transaksi jurnal</div>
+          </div>
+          <div class="settings-row-right">›</div>
+        </div>
+        <div class="settings-row" id="row-import">
+          <div class="settings-row-icon">⬆️</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Impor Data (JSON)</div>
+            <div class="settings-row-desc">Pulihkan dari file cadangan</div>
+          </div>
+          <div class="settings-row-right">›</div>
+        </div>
+        <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+        <div class="settings-row" id="row-clear">
+          <div class="settings-row-icon red-bg">🗑️</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Hapus Semua Data</div>
+            <div class="settings-row-desc">Bersihkan seluruh transaksi jurnal</div>
+          </div>
+          <div class="settings-row-right">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Tentang</div>
+      <div class="settings-group">
+        <div class="settings-row" style="cursor:default;">
+          <div class="settings-row-icon">ℹ️</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title">Versi Aplikasi</div>
+            <div class="settings-row-desc">Jurnal Pemasukan &amp; Pengeluaran</div>
+          </div>
+          <div class="settings-row-right"><span class="settings-row-value">v1.0.0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="logout-btn" id="btnLogout" type="button">↩ KELUAR / LOGOUT</button>
+
+    <div class="settings-section">
+      <div class="settings-section-label" style="color:var(--red);">Zona Berbahaya</div>
+      <div class="settings-group" style="border-color:var(--red-border);">
+        <div class="settings-row" id="row-delete-account">
+          <div class="settings-row-icon red-bg">🗑️</div>
+          <div class="settings-row-content">
+            <div class="settings-row-title" style="color:var(--red);">Hapus Akun</div>
+            <div class="settings-row-desc">Hapus akun &amp; semua data secara permanen</div>
+          </div>
+          <div class="settings-row-right" style="color:var(--red);">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-version">© 2026 Jurnal Pemasukan &amp; Pengeluaran — data tersimpan lokal di perangkat ini.</div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-bar">
+    <div class="nav-item active" id="nav-beranda" data-nav="beranda"><span class="nav-icon">🏠</span><span>Beranda</span></div>
+    <div class="nav-item" id="nav-jurnal" data-nav="jurnal"><span class="nav-icon">📒</span><span>Jurnal</span></div>
+    <div class="nav-item" id="nav-settings" data-nav="settings"><span class="nav-icon">⚙️</span><span>Atur</span></div>
+  </nav>
+
+</div><!-- /app-wrap -->
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- Edit Profil -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Profil</div>
+    <div class="avatar-upload">
+      <div class="avatar-upload-preview" id="edit-avatar-preview">👤</div>
+      <input type="file" id="photo-upload-input" accept="image/*" style="display:none;">
+      <button type="button" class="avatar-upload-btn" id="avatar-upload-btn">📷 Ganti Foto</button>
+    </div>
+    <div class="modal-field"><label>Nama Lengkap</label><input type="text" id="edit-name" placeholder="Nama kamu"></div>
+    <div class="modal-field"><label>Email</label><input type="email" id="edit-email" placeholder="Email kamu" inputmode="email"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn-cancel" type="button" data-close-modal="modal-profile">Batal</button>
+      <button class="modal-btn-save" type="button" id="btnSaveProfile">SIMPAN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ubah Password -->
+<div class="modal-overlay" id="modal-password">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ubah Password</div>
+    <div class="login-error" id="pw-error" style="margin-bottom:1rem;"></div>
+    <div class="modal-field">
+      <label>Password Lama</label>
+      <div class="login-input-wrap">
+        <input class="login-input" style="padding-right:44px;" type="password" id="pw-old" placeholder="Password saat ini">
+        <button type="button" class="eye-btn" id="eye-pw-old"></button>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Password Baru</label>
+      <div class="login-input-wrap">
+        <input class="login-input" style="padding-right:44px;" type="password" id="pw-new" placeholder="Min. 8 karakter &amp; angka">
+        <button type="button" class="eye-btn" id="eye-pw-new"></button>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Konfirmasi Password Baru</label>
+      <div class="login-input-wrap">
+        <input class="login-input" style="padding-right:44px;" type="password" id="pw-confirm" placeholder="Ulangi password baru">
+        <button type="button" class="eye-btn" id="eye-pw-confirm"></button>
+      </div>
+    </div>
+    <div class="modal-btn-row">
+      <button class="modal-btn-cancel" type="button" data-close-modal="modal-password">Batal</button>
+      <button class="modal-btn-save" type="button" id="btnSavePassword">SIMPAN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Atur PIN -->
+<div class="modal-overlay" id="modal-pin">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Atur PIN</div>
+    <div class="pin-setup-step" id="pin-setup-step">Masukkan 6 digit PIN baru</div>
+    <div class="pin-setup-dots">
+      <div class="pin-setup-dot" id="spd0"></div><div class="pin-setup-dot" id="spd1"></div><div class="pin-setup-dot" id="spd2"></div>
+      <div class="pin-setup-dot" id="spd3"></div><div class="pin-setup-dot" id="spd4"></div><div class="pin-setup-dot" id="spd5"></div>
+    </div>
+    <div class="pin-setup-keypad">
+      <button class="pin-setup-key" data-pinsetup="1" type="button">1</button>
+      <button class="pin-setup-key" data-pinsetup="2" type="button">2</button>
+      <button class="pin-setup-key" data-pinsetup="3" type="button">3</button>
+      <button class="pin-setup-key" data-pinsetup="4" type="button">4</button>
+      <button class="pin-setup-key" data-pinsetup="5" type="button">5</button>
+      <button class="pin-setup-key" data-pinsetup="6" type="button">6</button>
+      <button class="pin-setup-key" data-pinsetup="7" type="button">7</button>
+      <button class="pin-setup-key" data-pinsetup="8" type="button">8</button>
+      <button class="pin-setup-key" data-pinsetup="9" type="button">9</button>
+      <button class="pin-setup-key empty" type="button"></button>
+      <button class="pin-setup-key" data-pinsetup="0" type="button">0</button>
+      <button class="pin-setup-key del" id="pin-setup-del-btn" type="button">⌫</button>
+    </div>
+    <div class="pin-error-msg" id="pin-setup-error"></div>
+    <button class="modal-btn-cancel" type="button" style="margin-top:1rem;width:100%;" data-close-modal="modal-pin">Batal</button>
+  </div>
+</div>
+
+<!-- Kelola Kategori -->
+<div class="modal-overlay" id="modal-categories">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Kelola Kategori</div>
+    <div class="cat-add-row">
+      <input type="text" id="cat-new-input" placeholder="Nama kategori baru…">
+      <button type="button" class="cat-add-btn" id="btnAddCategory">+ Tambah</button>
+    </div>
+    <div class="cat-manage-list" id="catManageList"></div>
+    <button class="modal-btn-cancel" type="button" style="margin-top:14px;width:100%;" data-close-modal="modal-categories">Selesai</button>
+  </div>
+</div>
+
+<!-- Hapus Akun -->
+<div class="modal-overlay" id="modal-delete-account">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--red);">⚠️ Hapus Akun</div>
+    <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--red);margin-bottom:1.2rem;line-height:1.6;">
+      Tindakan ini <strong>tidak dapat dibatalkan</strong>. Semua data akun dan riwayat transaksi akan dihapus secara permanen dari perangkat ini.
+    </div>
+    <div class="login-error" id="del-acc-error" style="margin-bottom:1rem;"></div>
+    <div class="modal-field"><label>Konfirmasi Password</label><input type="password" id="del-acc-password" placeholder="Masukkan password kamu"></div>
+    <div class="modal-field"><label>Ketik <strong style="color:var(--red);">HAPUS AKUN</strong> untuk konfirmasi</label><input type="text" id="del-acc-confirm-text" placeholder="HAPUS AKUN"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn-cancel" type="button" data-close-modal="modal-delete-account">Batal</button>
+      <button class="modal-btn-danger" type="button" id="btnConfirmDeleteAccount">HAPUS</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="update-banner" class="update-banner" style="display:none;">
+  <span>Versi baru tersedia.</span>
+  <button id="update-btn" class="btn-ghost" type="button">Perbarui</button>
+</div>
+
+</div><!-- /root -->
+
+<script src="js/app.js"></script>
+
+<!-- Sinkronisasi cloud antar perangkat (Firebase) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud-sync.js"></script>
+
+<script src="js/pwa.js"></script>
+</body>
+</html>

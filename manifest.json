@@ -1,0 +1,20 @@
+{
+  "name": "Jurnal Pemasukan & Pengeluaran",
+  "short_name": "Jurnal Keuangan",
+  "description": "Catat pemasukan dan pengeluaran harian, dengan rekap mingguan & bulanan otomatis. Dilindungi login dan PIN, 100% offline di perangkat kamu.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0904",
+  "theme_color": "#0b0904",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
